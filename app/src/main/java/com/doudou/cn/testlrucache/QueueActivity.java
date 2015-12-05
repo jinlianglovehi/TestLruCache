@@ -5,114 +5,48 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import com.doudou.cn.testlrucache.testUpload.ComparableRunnable;
+import com.doudou.cn.testlrucache.testUpload.FileQueue;
 
 /**
  * Created by jinliang on 15/12/5.
  */
-public class QueueActivity extends Activity{
-    private static  final  String TAG =QueueActivity.class.getSimpleName();
-    private ExecutorService executorService ;
-    private final static int CPU_COUNT = Runtime.getRuntime().availableProcessors();
-    private final static int POOL_SIZE= CPU_COUNT+1;
-    private final static int MAX_POOL_SIZE= CPU_COUNT*2+1;
-    private final static int KEEP_ALIVE_TIME=4;
-    private  Executor mExecutor;
-    private Button addThread,startQueue;
-    private  volatile int  sum = 0;
-    private LinkedBlockingQueue<Runnable>  queue =new LinkedBlockingQueue<Runnable>();
+public class QueueActivity extends Activity {
+    private static  final String TAG =QueueActivity.class.getSimpleName();
+    private FileQueue fileQueue;
+    private Button addThread;
+    private EditText etPriority;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_queue);
+        fileQueue = new FileQueue();
         addThread = (Button) findViewById(R.id.addThread);
+        etPriority = (EditText) findViewById(R.id.priority);
         addThread.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.i(TAG, "onClick ");
-                Runnable runnable1 = new Runnable() {
+                int priority = Integer.parseInt(etPriority.getText().toString());
+                ComparableRunnable task = new ComparableRunnable(priority) {
                     @Override
                     public void run() {
-
-                        Log.i("QueueActivity", "run ：" + 1);
-                    }
-                };
-                Runnable runnable2 = new Runnable() {
-                    @Override
-                    public void run() {
-
-                        Log.i("QueueActivity", "run ：" + 2);
-                    }
-                };
-                Runnable runnable3 = new Runnable() {
-                    @Override
-                    public void run() {
-
-                        Log.i("QueueActivity", "run ：" + 3);
-                    }
-                };
-                Runnable runnable4 = new Runnable() {
-                    @Override
-                    public void run() {
-
-                        Log.i("QueueActivity", "run ：" + 4);
-                    }
-                };
-
-                Runnable runnable5 = new Runnable() {
-                    @Override
-                    public void run() {
-
-                        Log.i("QueueActivity", "run ：" + 5);
-                    }
-                };
-
-                Runnable runnable6 = new Runnable() {
-                    @Override
-                    public void run() {
-
-                        Log.i("QueueActivity", "run ：" + 6);
-                    }
-                };
-                queue.add(runnable1);
-                queue.add(runnable2);
-                queue.add(runnable3);
-                queue.add(runnable4);
-                queue.add(runnable5);
-                queue.add(runnable6);
-            }
-        });
-        BlockingQueue<Runnable> workQueue = new LinkedBlockingDeque<Runnable>();
-        executorService = new ThreadPoolExecutor(1, 10,
-            0L, TimeUnit.MILLISECONDS,queue
-            );
-
-        startQueue = (Button) findViewById(R.id.startQueue);
-        startQueue.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                new Thread(){
-                    @Override
-                    public void run() {
-
-                        while (true){
-                            Runnable  run =queue.peek();
-                            if(run!=null){
-                                executorService.execute(run);
-                            }
-
+                        try {
+                            Log.d(TAG, this.getPriority() + "");
+                            Thread.sleep(2000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
                     }
-                }.start();
+                };
+                fileQueue.add(task);
             }
         });
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        fileQueue.stop();
     }
 }
