@@ -12,12 +12,7 @@ public abstract class ComparableRunnable implements Runnable, Comparable<Compara
      * 任务标签
      */
     protected Object tag;
-    private boolean isCancle;
-    /**
-     * 不含标签任务
-     */
-    public ComparableRunnable() {
-    }
+
     public ComparableRunnable(int priority) {
         this.priority = priority;
     }
